@@ -190,7 +190,7 @@ void SX126xWriteCommand(RadioCommands_t command, uint8_t *buffer, uint16_t size)
 
 	for (uint16_t i = 0; i < size; i++)
 	{
-		SPI_LORA.transfer(buffer[i]);
+		SPI.transfer(buffer[i]);
 	}
 
 		SPI.endTransaction();
@@ -213,7 +213,7 @@ void SX126xReadCommand(RadioCommands_t command, uint8_t *buffer, uint16_t size)
 		SPI.transfer(0x00);
 	for (uint16_t i = 0; i < size; i++)
 	{
-		buffer[i] = SPI_LORA.transfer(0x00);
+		buffer[i] = SPI.transfer(0x00);
 	}
 
 		SPI.endTransaction();
