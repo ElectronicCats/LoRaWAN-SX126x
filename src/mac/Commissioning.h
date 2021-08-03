@@ -15,9 +15,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #ifndef __LORA_COMMISSIONING_H__
 #define __LORA_COMMISSIONING_H__
 
-extern "C"
-{
-	/**@brief Define your region here 
+/**@brief Define your region here 
  * Required because each region has different regulations
  * The LoRa Alliance offers documentation for the regional parameters
  * Latest revision when this library was created
@@ -36,9 +34,25 @@ extern "C"
  * REGION_US915 -> US 915 MHz
  */
 
-#if !defined(REGION_AS923) && !defined(REGION_AU915) && !defined(REGION_CN470) && !defined(REGION_CN779) && !defined(REGION_EU433) && !defined(REGION_EU868) && !defined(REGION_IN865) && !defined(REGION_KR920) && !defined(REGION_US915) && !defined(REGION_US915_HYBRID)
-#define REGION_US915
+// For transistion time from the old library (region specific) to the new library (support of all regions)
+// We throw an error here if any REGION is defined.
+#if defined(REGION_AS923) || defined(REGION_AU915) || defined(REGION_CN470) || defined(REGION_CN779) || defined(REGION_EU433) || defined(REGION_EU868) || defined(REGION_IN865) || defined(REGION_KR920) || defined(REGION_US915) || defined(REGION_AS923_1) || defined(REGION_AS923_2) || defined(REGION_AS923_3) || defined(REGION_RU864)
+#error "SX126x-Arduino V2.0 does support all LoRaWAN regions without definition of 'REGION_XXYYY.\n\nPlease read detailed information how to use it on https://github.com/beegee-tokyo/SX126x-Arduino/blob/master/README_V2.md"
 #endif
+
+#define REGION_AS923
+#define REGION_AU915
+#define REGION_CN470
+#define REGION_CN779
+#define REGION_EU433
+#define REGION_EU868
+#define REGION_IN865
+#define REGION_KR920
+#define REGION_US915
+#define REGION_AS923_1
+#define REGION_AS923_2
+#define REGION_AS923_3
+#define REGION_RU864
 
 /**@brief Enable or disable duty cycle control
  * LoRaWAN ETSI duty cycle control enable/disable. 
@@ -120,5 +134,5 @@ extern "C"
 	{                                                                                                  \
 		0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6, 0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C \
 	}
-};
+
 #endif // __LORA_COMMISSIONING_H__
