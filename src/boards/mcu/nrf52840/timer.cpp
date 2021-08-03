@@ -37,102 +37,146 @@ Modified for NRF52840 Andrés Sabas @ Electronic Cats
 #if defined(ARDUINO_ARCH_MBED)
 #include "boards/mcu/timer.h"
 #include "boards/mcu/board.h"
+
 #include <mbed.h>
+#include <rtos.h>
+#include <cmsis_os.h>
 
-using namespace std::chrono_literals;
-using namespace std::chrono;
+using namespace rtos;
+using namespace mbed;
 
-extern "C"
-{  
-	mbed::Ticker  timerTickers[10]; // calls a callback repeatedly with a timeout
-	mbed::Timeout timeoutTickers[10];  // calls a callback once when a timeout expires
-	uint32_t timerTimes[10];
-	bool timerInUse[10] = {false, false, false, false, false, false, false, false, false, false};
-
-	// External functions
-
-	void TimerConfig(void)
-	{
-		/// \todo Nothing to do here for nRF52
-	}
-
-	void TimerInit(TimerEvent_t *obj, void (*callback)(void))
-	{
-		// Look for an available Ticker
-		for (int idx = 0; idx < 10; idx++)
-		{
-			if (timerInUse[idx] == false)
-			{
-				timerInUse[idx] = true;
-				obj->timerNum = idx;
-				obj->Callback = callback;
-				return;
-			}
-		}
-		/// \todo We run out of tickers, what do we do now???
-	}
-
-	void timerCallback(TimerEvent_t *obj)
-	{
-		// Nothing to do here for the nRF52
-	}
-
-	void TimerStart(TimerEvent_t *obj)
-	{
-
-        int idx = obj->timerNum;
-		if (obj->oneShot)
-		{
-			timeoutTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::microseconds(timerTimes[idx]));
-		}
-		else
-		{
-			timerTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::microseconds(timerTimes[idx]));
-		}
-	}
-
-	void TimerStop(TimerEvent_t *obj)
-	{
-		int idx = obj->timerNum;
-		timerTickers[idx].detach();
-		timeoutTickers[idx].detach();
-	}
-
-	void TimerReset(TimerEvent_t *obj)
-	{
-		int idx = obj->timerNum;
-		timerTickers[idx].detach();
-		timeoutTickers[idx].detach();
-		if (obj->oneShot)
-		{
-			//timeoutTickers[idx].attach((mbed::callback(obj->Callback)), timerTimes[idx] * 1ms);
-			timeoutTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::microseconds(timerTimes[idx]));
-		}
-		else
-		{
-			//timerTickers[idx].attach((mbed::callback(obj->Callback)), timerTimes[idx] * 1ms);
-			timerTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::microseconds(timerTimes[idx]));
-		}
-	}
-
-	void TimerSetValue(TimerEvent_t *obj, uint32_t value)
-	{
-		int idx = obj->timerNum;
-		timerTimes[idx] = value;
-	}
-
-	TimerTime_t TimerGetCurrentTime(void)
-	{
-		return millis();
-	}
-
-	TimerTime_t TimerGetElapsedTime(TimerTime_t past)
-	{
-		uint32_t nowInTicks = millis();
-		uint32_t pastInTicks = past;
-		TimerTime_t diff = nowInTicks - pastInTicks;
-
-		return diff;
-	}
+/** Timer structure */
+struct s_timer
+{
+	int32_t signal = 0;
+	bool in_use = false;
+	bool active = false;
+	time_t duration;
+	time_t start_time;
+	void (*callback)();
 };
-#endif
+
+/** Array to hold the timers */
+s_timer timer[10];
+
+/**
+ * @brief Configure timers
+ * Starts the background thread to handle timer events
+ * Starts the Hardware timer to wakeup the handler thread
+ * 
+ */
+void TimerConfig(void)
+{
+	
+}
+
+/**
+ * @brief Initialize a new timer
+ * Checks for available timer slot (limited to 10)
+ * 
+ * @param obj structure with timer settings
+ * @param callback callback that the timer should call
+ */
+void TimerInit(TimerEvent_t *obj, void (*callback)(void))
+{
+	// Look for an available Ticker
+	for (int idx = 0; idx < 10; idx++)
+	{
+		if (timer[idx].in_use == false)
+		{
+			timer[idx].signal = 1 << idx; // + 1;
+			timer[idx].in_use = true;
+			timer[idx].active = false;
+			timer[idx].callback = callback;
+			timer[idx].duration = obj->ReloadValue * 1000;
+			obj->timerNum = idx;
+			obj->Callback = callback;
+			LOG_LIB("TIM", "Timer %d assigned", idx);
+			return;
+		}
+	}
+	LOG_LIB("TIM", "No more timers available!");
+}
+
+/**
+ * @brief Activate a timer
+ * CAUTION requires the timer was initialized before
+ * 
+ * @param obj structure with timer settings 
+ */
+void TimerStart(TimerEvent_t *obj)
+{
+	int idx = obj->timerNum;
+
+	timer[idx].start_time = micros();
+	timer[idx].active = true;
+	// LOG_LIB("TIM", "Timer %d started with %d ms", idx, timer[idx].duration);
+}
+
+/**
+ * @brief Deactivate a timer
+ * CAUTION requires the timer was initialized before
+ * 
+ * @param obj structure with timer settings 
+ */
+void TimerStop(TimerEvent_t *obj)
+{
+	int idx = obj->timerNum;
+	timer[idx].active = false;
+	// LOG_LIB("TIM", "Timer %d stopped", idx);
+}
+
+/**
+ * @brief Restart a timer
+ * CAUTION requires the timer was initialized before
+ * 
+ * @param obj structure with timer settings 
+ */
+void TimerReset(TimerEvent_t *obj)
+{
+	int idx = obj->timerNum;
+	timer[idx].active = false;
+	timer[idx].start_time = micros();
+	timer[idx].active = true;
+	// LOG_LIB("TIM", "Timer %d reset with %d ms", idx, timerTimes[idx]);
+}
+
+/**
+ * @brief Set the duration time of a timer
+ * CAUTION requires the timer was initialized before
+ * 
+ * @param obj structure with timer settings 
+ * @param value duration time in milliseconds 
+ */
+void TimerSetValue(TimerEvent_t *obj, uint32_t value)
+{
+	int idx = obj->timerNum;
+	timer[idx].duration = value * 1000;
+	// LOG_LIB("TIM", "Timer %d setup to %d ms", idx, value);
+}
+
+/**
+ * @brief Get current time in milliseconds
+ * 
+ * @return TimerTime_t time in milliseconds
+ */
+TimerTime_t TimerGetCurrentTime(void)
+{
+	return millis();
+}
+
+/**
+ * @brief Get timers elapsed time
+ * 
+ * @param past last time the check was done
+ * @return TimerTime_t difference between now and last check
+ */
+TimerTime_t TimerGetElapsedTime(TimerTime_t past)
+{
+	uint32_t nowInTicks = millis();
+	uint32_t pastInTicks = past;
+	TimerTime_t diff = nowInTicks - pastInTicks;
+
+	return diff;
+}
+#endif // ARDUINO_ARCH_MBED
