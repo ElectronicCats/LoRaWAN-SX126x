@@ -124,3 +124,42 @@ extern "C"
 
 	void BoardEnableIrq(void);
 };
+
+#ifdef ARDUINO_ARCH_MBED
+#include <mbed.h>
+#include <rtos.h>
+using namespace rtos;
+using namespace mbed;
+
+/** The event handler thread */
+Thread _thread_handle_lora(osPriorityAboveNormal, 4096);
+
+/** Thread id for lora event thread */
+osThreadId _lora_task_thread = NULL;
+
+// Task to handle timer events
+void _lora_task()
+{
+	_lora_task_thread = osThreadGetId();
+	while (true)
+	{
+		// Wait for event
+		osSignalWait(0x1, osWaitForever);
+
+		// LOG_LIB("TIM", "LoRa IRQ");
+		// Handle Radio events
+		Radio.BgIrqProcess();
+
+		yield();
+	}
+}
+
+bool start_lora_task(void)
+{
+	_thread_handle_lora.start(_lora_task);
+	_thread_handle_lora.set_priority(osPriorityAboveNormal);
+
+	/// \todo how to detect that the task is really created
+	return true;
+}
+#endif
