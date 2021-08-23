@@ -33,9 +33,9 @@ Maintainer: Miguel Luis and Gregory Cristian
  *	OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  *****************************************************************************/
-#ifdef NRF52_SERIES
-#if !defined(ARDUINO_ARCH_MBED)
+#if defined(ARDUINO_ARCH_MBED)
 #include "boards/mcu/board.h"
+#include "mbed.h"
 extern "C"
 {
 /**@brief Unique Devices IDs register set (nRF52)
@@ -78,5 +78,4 @@ extern "C"
 	{
 	}
 };
-#endif
 #endif

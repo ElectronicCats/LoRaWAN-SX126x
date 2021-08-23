@@ -140,12 +140,6 @@ extern "C"
 #if defined(REGION_AS923)
 		uint16_t subBandChannelMask[1] = {0x0000};
 		uint8_t maxBand = 1;
-#ifdef ESP32
-		log_i("[FREQ] REGION_AS923");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_AS923");
-#endif
 #elif defined(REGION_AU915)
 		uint16_t subBandChannelMask[6] = {0x0000,
 										  0x0000,
@@ -154,12 +148,6 @@ extern "C"
 										  0x0000,
 										  0x0000};
 		uint8_t maxBand = 9;
-#ifdef ESP32
-		log_i("[FREQ] REGION_AU915");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_AU915");
-#endif
 #elif defined(REGION_CN470)
 		uint16_t subBandChannelMask[6] = {0x0000,
 										  0x0000,
@@ -168,57 +156,21 @@ extern "C"
 										  0x0000,
 										  0x0000};
 		uint8_t maxBand = 12;
-#ifdef ESP32
-		log_i("[FREQ] REGION_CN470");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_CN470");
-#endif
 #elif defined(REGION_CN779)
 		uint16_t subBandChannelMask[1] = {0x0000};
 		uint8_t maxBand = 2;
-#ifdef ESP32
-		log_i("[FREQ] REGION_CN779");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_CN779");
-#endif
 #elif defined(REGION_EU433)
 		uint16_t subBandChannelMask[1] = {0x0000};
 		uint8_t maxBand = 2;
-#ifdef ESP32
-		log_i("[FREQ] REGION_EU433");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_EU433");
-#endif
 #elif defined(REGION_IN865)
 		uint16_t subBandChannelMask[1] = {0x0000};
 		uint8_t maxBand = 2;
-#ifdef ESP32
-		log_i("[FREQ] REGION_IN865");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_IN865");
-#endif
 #elif defined(REGION_EU868)
 		uint16_t subBandChannelMask[1] = {0x0000};
 		uint8_t maxBand = 2;
-#ifdef ESP32
-		log_i("[FREQ] REGION_EU868");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_EU868");
-#endif
 #elif defined(REGION_KR920)
 		uint16_t subBandChannelMask[1] = {0x0000};
 		uint8_t maxBand = 2;
-#ifdef ESP32
-		log_i("[FREQ] REGION_KR920");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_KR920");
-#endif
 #elif defined(REGION_US915)
 		uint16_t subBandChannelMask[6] = {0x0000,
 										  0x0000,
@@ -227,12 +179,6 @@ extern "C"
 										  0x0000,
 										  0x0000};
 		uint8_t maxBand = 9;
-#ifdef ESP32
-		log_i("[FREQ] REGION_US915");
-#endif
-#ifdef NRF52_SERIES
-		ADALOG("FREQ", "REGION_US915");
-#endif
 #elif defined(REGION_US915_HYBRID)
 		uint16_t subBandChannelMask[6] = {0x0000,
 										  0x0000,
@@ -245,7 +191,9 @@ extern "C"
 		log_i("[FREQ] REGION_US915_HYBRID");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 		ADALOG("FREQ", "REGION_US915_HYBRID");
+#endif
 #endif
 #else
 #error "Please define a region in the compiler options."
@@ -256,6 +204,14 @@ extern "C"
 		// Check for valid sub band
 		if ((subBand == 0) || (subBand > maxBand))
 		{
+#ifdef ESP32
+			log_e("[LMH] Invalid subband");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LMH", "Invalid subband");
+#endif
+#endif
 			// Invalid sub band requested
 			return false;
 		}
@@ -332,6 +288,14 @@ extern "C"
 			}
 			break;
 		default:
+#ifdef ESP32
+			log_e("[LMH] Invalid subband");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LMH", "Invalid subband");
+#endif
+#endif
 			return false;
 		}
 		if (maxBand > 2)
@@ -347,6 +311,14 @@ extern "C"
 			RegionCommonChanMaskCopy(ChannelsMaskRemaining, subBandChannelMask, 1);
 		}
 
+#ifdef ESP32
+		log_e("[LMH] Selected subband %d", subBand);
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+		LOG_LV1("LMH", "Selected subband %d", subBand);
+#endif
+#endif
 		return true;
 	}
 
@@ -701,12 +673,21 @@ extern "C"
 			if (mlmeConfirm->Status == LORAMAC_EVENT_INFO_STATUS_OK)
 			{
 				// Status is OK, node has joined the network
-				m_callbacks->lmh_has_joined();
+				if (m_callbacks->lmh_has_joined != NULL)
+				{
+					m_callbacks->lmh_has_joined();
+				}
 			}
 			else
 			{
+				// call joined failed callback here
+				if (m_callbacks->lmh_has_joined_failed != NULL)
+				{
+					m_callbacks->lmh_has_joined_failed();
+				}
+
 				// Join was not successful. Try to join again
-				lmh_join();
+				// lmh_join(); // people can call it in callback funtion of joined failed.
 			}
 			break;
 		}
@@ -732,11 +713,12 @@ extern "C"
 		}
 	}
 
-	static char strlog1[64];
-	static char strlog2[64];
-	static char strlog3[64];
-	lmh_error_status lmh_init(lmh_callback_t *callbacks, lmh_param_t lora_param, bool otaa)
+	lmh_error_status lmh_init(lmh_callback_t *callbacks, lmh_param_t lora_param, bool otaa, eDeviceClass nodeClass)
 	{
+		char strlog1[64];
+		char strlog2[64];
+		char strlog3[64];
+
 		LoRaMacStatus_t error_status;
 		m_param = lora_param;
 		m_callbacks = callbacks;
@@ -760,7 +742,9 @@ extern "C"
 			log_i("OTAA\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
 #endif
 #ifdef NRF52_SERIES
-			ADALOG("OTAA", "\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("OTAA", "\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
+#endif
 #endif
 		}
 		else
@@ -782,7 +766,9 @@ extern "C"
 			log_i("ABP\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
 #endif
 #ifdef NRF52_SERIES
-			ADALOG("ABP", "\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("ABP", "\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
+#endif
 #endif
 		}
 
@@ -815,7 +801,7 @@ extern "C"
 #else
 #error "Please define a region in the compiler options."
 #endif
-		error_status = LoRaMacInitialization(&LoRaMacPrimitives, &LoRaMacCallbacks, region);
+		error_status = LoRaMacInitialization(&LoRaMacPrimitives, &LoRaMacCallbacks, region, nodeClass);
 		if (error_status != LORAMAC_STATUS_OK)
 		{
 			return LMH_ERROR;
@@ -823,6 +809,14 @@ extern "C"
 
 		mibReq.Type = MIB_ADR;
 		mibReq.Param.AdrEnable = lora_param.adr_enable;
+		LoRaMacMibSetRequestConfirm(&mibReq);
+
+		mibReq.Type = MIB_CHANNELS_DEFAULT_DATARATE;
+		mibReq.Param.ChannelsDefaultDatarate = lora_param.tx_data_rate;
+		LoRaMacMibSetRequestConfirm(&mibReq);
+
+		mibReq.Type = MIB_CHANNELS_DATARATE;
+		mibReq.Param.ChannelsDatarate = lora_param.tx_data_rate;
 		LoRaMacMibSetRequestConfirm(&mibReq);
 
 		mibReq.Type = MIB_CHANNELS_TX_POWER;
@@ -834,7 +828,7 @@ extern "C"
 		LoRaMacMibSetRequestConfirm(&mibReq);
 
 		mibReq.Type = MIB_DEVICE_CLASS;
-		mibReq.Param.Class = CLASS_A;
+		mibReq.Param.Class = nodeClass;
 		LoRaMacMibSetRequestConfirm(&mibReq);
 
 		LoRaMacTestSetDutyCycleOn(_dutyCycleEnabled);
@@ -937,7 +931,7 @@ extern "C"
 			LoRaMacMibSetRequestConfirm(&mibReq);
 
 			mibReq.Type = MIB_NETWORK_JOINED;
-			mibReq.Param.IsNetworkJoined = true;
+			mibReq.Param.IsNetworkJoined = JOIN_OK;
 			LoRaMacMibSetRequestConfirm(&mibReq);
 
 			m_callbacks->lmh_has_joined();
@@ -950,14 +944,16 @@ extern "C"
 		mibReq.Type = MIB_NETWORK_JOINED;
 		LoRaMacMibGetRequestConfirm(&mibReq);
 
-		if (mibReq.Param.IsNetworkJoined == true)
-		{
-			return LMH_SET;
-		}
-		else
-		{
-			return LMH_RESET;
-		}
+		// if (mibReq.Param.IsNetworkJoined == true)
+		// {
+		// 	return LMH_SET;
+		// }
+		// else
+		// {
+		// 	return LMH_RESET;
+		// }
+
+		return (lmh_join_status)mibReq.Param.IsNetworkJoined;
 	}
 
 	lmh_error_status lmh_send(lmh_app_data_t *app_data, lmh_confirm is_tx_confirmed)
@@ -973,6 +969,14 @@ extern "C"
 
 		if (LoRaMacQueryTxPossible(app_data->buffsize, &txInfo) != LORAMAC_STATUS_OK)
 		{
+#ifdef ESP32
+			log_d("lmh_send -> LoRaMacQueryTxPossible failed");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LMH", "lmh_send -> LoRaMacQueryTxPossible failed");
+#endif
+#endif
 			// Send empty frame in order to flush MAC commands
 			mcpsReq.Type = MCPS_UNCONFIRMED;
 			mcpsReq.Req.Unconfirmed.fBuffer = NULL;
@@ -1009,6 +1013,14 @@ extern "C"
 			{
 				return LMH_SUCCESS;
 			}
+#ifdef ESP32
+			log_d("lmh_send -> LoRaMacMcpsRequest failed");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LMH", "lmh_send -> LoRaMacMcpsRequest failed");
+#endif
+#endif
 		}
 
 		return LMH_ERROR;

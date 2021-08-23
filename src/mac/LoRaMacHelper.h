@@ -51,7 +51,9 @@ extern "C"
 	typedef enum
 	{
 		LMH_RESET = 0,
-		LMH_SET = !LMH_RESET
+		LMH_SET,
+		LMH_ONGOING,
+		LMH_FAILED
 	} lmh_join_status;
 
 	typedef enum
@@ -110,6 +112,10 @@ extern "C"
  */
 		void (*lmh_ConfirmClass)(DeviceClass_t Class);
 
+		/**@brief callback indicating EndNode has just joined failed
+ */
+		void (*lmh_has_joined_failed)();
+
 	} lmh_callback_t;
 
 	/**@brief LoRaWAN compliance tests support data
@@ -133,10 +139,11 @@ extern "C"
  * @param callbacks	Pointer to structure containing the callback functions
  * @param lora_param	Pointer to structure containing the parameters
  * @param otaa Choose OTAA (true) or ABP (false) activation
+ * @param nodeClass Choose node class CLASS_A, CLASS_B or CLASS_C, default to CLASS_A
  *
  * @retval error status
  */
-	lmh_error_status lmh_init(lmh_callback_t *callbacks, lmh_param_t lora_param, bool otaa);
+	lmh_error_status lmh_init(lmh_callback_t *callbacks, lmh_param_t lora_param, bool otaa, eDeviceClass nodeClass = CLASS_A);
 
 	/**@brief Send data
  *

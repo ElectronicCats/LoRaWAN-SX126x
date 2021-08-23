@@ -71,3 +71,69 @@ Arduino library for LoRa communication with Semtech SX126x chips. It is based on
 
 ## V1.0.0 First release for ArduinoIDE and PlatformIO
 - THIS IS WORK IN PROGRESS AND NOT ALL FUNCTIONS ARE INCLUDED NOR TESTED. USE IT AT YOUR OWN RISK!
+
+
+----
+## Changelog
+[Code releases](CHANGELOG.md)
+- 2020-09-29:
+  - Fix wrong control of antenna switch for RAK4631
+  - Add option to control power of antenna switch by the library with **`_hwConfig.USE_RXEN_ANT_PWR`**
+- 2020-08-01:
+  - Fixed linker error when header files are included from multiple source files
+- 2020-07-09:
+  - Duty cycle and adaptive data rate control moved out of Commissioning.h
+- 2020-06-25:
+  - Rework the timer functions for nRF52 family. OTAA now working better
+  - Add option to select between OTAA and ABP for LoRaWan when calling **`lmh_init()`** 
+  - Reworked SX126x reset function
+  - Support for RAKwireless RAK4630/4631 => **`lora_rak4630_init()`**  
+- 2020-06-14:
+  - Fix Travis CI & documentation
+  - Add option to select LDO instead of DCDC for SX126x chip in **`hwConfig`** struct
+- 2020-05-22:
+  - Fix compiler errors when OTAA is selected
+- 2020-05-20:
+  - Add compatibility with nRF52840 (experimental) 
+  - Fix ArduinoIDE compile problems
+  - Fix examples
+- 2020-03-28:
+  - Fix bug in LoRaWan Class switch 
+- 2020-03-10:
+  - Added new SetCadParameter function to Radio class 
+- 2020-01-16:
+  - Fix bug in receive callbacks in case a CRC error is detected.
+  - Added Preamble detection callback
+  - Added two more examples for a sensor node and a gateway node with deep sleep usage.
+- 2019-12-28:
+  - Updated examples
+- 2019-12-12:
+  - Added check if SX126x is really connected
+  - Fixed second bug in the definition of the sync word
+  - Added IRQ settings in RadioSetRxDutyCycle
+- 2019-12-09:
+  - Fixed bug in the definition of the sync word
+  - Added possibility to re-init connection to SX1261/2 after CPU wakes up from sleep/deep-sleep
+    - **`lora_hardware_re_init()`** to re-initialize SX1262 connection without resetting the LoRa chip
+    - **`Radio.ReInit()`** to re-initialize SX1262 connection without resetting the LoRa chip
+    - **`Radio.IrqProcessAfterDeepSleep()`** to handle IRQ that woke up the CPU (RX_DONE, TX_DONE, ...)
+- 2019-11-09:
+  - Added Workarounds for limitations as written in DS_SX1261-2_V1.2 datasheet
+  - Tested with both Single Channel ([ESP32](https://github.com/beegee-tokyo/SX1262-SC-GW)) and 8 Channel ([Dragino LPS8](https://www.dragino.com/products/lora-lorawan-gateway/item/148-lps8.html)) LoRaWan gateways
+  - Added possibility to force use of sub band of region `lmh_setSubBandChannels()`
+- 2019-10-12:
+  - On PlatformIO no more need to edit `Commissioning.h`. Everything is done with functions and build flags
+  - On ArduinoIDE reduced edititing of `Commissioning.h`. Only the region has to be setup by #define
+  - Replaced LoRaWan definitions by function calls `lmh_setDevEui`, `lmh_setAppEui`, `lmh_setAppKey`, `lmh_setNwkSKey`, `lmh_setAppSKey`, `lmh_setDevAddr`, `lmh_setSingleChannelGateway`
+  - Updated LoRaWan examples
+  - Added CHANNEL.MD and DATARATE.MD lists 
+  - Beautify README.MD
+- 2019-10-11: Added support for LoRaWan connection to single channel Gateway (no frequency hopping)
+- 2019-10-09:    
+  - Tested LoRaWan with a single channel LoRaWan gateway.    
+  - Added support for single channel gateways    
+  - Added support for Insight SIP ISP4520 SoC (nRf52832 + SX1261/2 in one package)    
+- 2019-08-01: Added Espressif ESP8266 support
+- 2019-07-31: Added LoRaWan support (only partly tested)
+- 2019-07-28: Restructure of folders, added nRF52832 support    
+- 2019-07-26: First commit. 

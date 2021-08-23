@@ -180,7 +180,7 @@ extern "C"
 	/*!
  * Indicates if the MAC layer has already joined a network.
  */
-	static bool IsLoRaMacNetworkJoined = false;
+	eJoinStatus_t IsLoRaMacNetworkJoined = JOIN_NOT_START;
 
 	/*!
  * LoRaMac ADR control status
@@ -606,6 +606,14 @@ extern "C"
 
 	static void OnRadioTxDone(void)
 	{
+#ifdef ESP32
+		log_d("OnRadioTxDone");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+		LOG_LV1("LM", "OnRadioTxDone");
+#endif
+#endif
 		GetPhyParams_t getPhy;
 		PhyParam_t phyParam;
 		SetBandTxDoneParams_t txDone;
@@ -619,6 +627,14 @@ extern "C"
 		// Setup timers
 		if (IsRxWindowsEnabled == true)
 		{
+#ifdef ESP32
+			log_d("OnRadioTxDone => RX Windows #1 %d #2 %d", RxWindow1Delay, RxWindow2Delay);
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LM", "OnRadioTxDone => RX Windows #1 %d #2 %d", RxWindow1Delay, RxWindow2Delay);
+#endif
+#endif
 			TimerSetValue(&RxWindowTimer1, RxWindow1Delay);
 			TimerStart(&RxWindowTimer1);
 			TimerSetValue(&RxWindowTimer2, RxWindow2Delay);
@@ -646,6 +662,14 @@ extern "C"
 		// Verify if the last uplink was a join request
 		if ((LoRaMacFlags.Bits.MlmeReq == 1) && (MlmeConfirm.MlmeRequest == MLME_JOIN))
 		{
+#ifdef ESP32
+			log_d("OnRadioTxDone => TX was Join Request");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LM", "OnRadioTxDone => TX was Join Request");
+#endif
+#endif
 			LastTxIsJoinRequest = true;
 		}
 		else
@@ -657,7 +681,8 @@ extern "C"
 		LastTxChannel = Channel;
 		// Update last tx done time for the current channel
 		txDone.Channel = Channel;
-		txDone.Joined = IsLoRaMacNetworkJoined;
+//		txDone.Joined = IsLoRaMacNetworkJoined;
+		txDone.Joined = (IsLoRaMacNetworkJoined == JOIN_OK);
 		txDone.LastTxDoneTime = curTime;
 		RegionSetBandTxDone(LoRaMacRegion, &txDone);
 		// Update Aggregated last tx done time
@@ -689,6 +714,14 @@ extern "C"
 
 	static void OnRadioRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr)
 	{
+#ifdef ESP32
+		log_d("OnRadioRxDone");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+		LOG_LV1("LM", "OnRadioRxDone");
+#endif
+#endif
 		LoRaMacHeader_t macHdr;
 		LoRaMacFrameCtrl_t fCtrl;
 		ApplyCFListParams_t applyCFList;
@@ -739,7 +772,15 @@ extern "C"
 		switch (macHdr.Bits.MType)
 		{
 		case FRAME_TYPE_JOIN_ACCEPT:
-			if (IsLoRaMacNetworkJoined == true)
+#ifdef ESP32
+			log_d("OnRadioRxDone => FRAME_TYPE_JOIN_ACCEPT");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LM", "OnRadioRxDone => FRAME_TYPE_JOIN_ACCEPT");
+#endif
+#endif
+			if (IsLoRaMacNetworkJoined == JOIN_OK)
 			{
 				McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 				PrepareRxDoneAbort();
@@ -790,17 +831,26 @@ extern "C"
 				RegionApplyCFList(LoRaMacRegion, &applyCFList);
 
 				MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_OK;
-				IsLoRaMacNetworkJoined = true;
+				IsLoRaMacNetworkJoined = JOIN_OK;
 				LoRaMacParams.ChannelsDatarate = LoRaMacParamsDefaults.ChannelsDatarate;
 			}
 			else
 			{
+				IsLoRaMacNetworkJoined = JOIN_FAILED;
 				MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL;
 			}
 			break;
 		case FRAME_TYPE_DATA_CONFIRMED_DOWN:
 		case FRAME_TYPE_DATA_UNCONFIRMED_DOWN:
 		{
+#ifdef ESP32
+			log_d("OnRadioRxDone => FRAME_TYPE_DATA_(UN)CONFIRMED_DOWN");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LM", "OnRadioRxDone => FRAME_TYPE_DATA_(UN)CONFIRMED_DOWN");
+#endif
+#endif
 			// Check if the received payload size is valid
 			getPhy.UplinkDwellTime = LoRaMacParams.DownlinkDwellTime;
 			getPhy.Datarate = McpsIndication.RxDatarate;
@@ -1084,6 +1134,14 @@ extern "C"
 		break;
 		case FRAME_TYPE_PROPRIETARY:
 		{
+#ifdef ESP32
+			log_d("OnRadioRxDone => FRAME_TYPE_PROPRIETARY");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LM", "OnRadioRxDone => FRAME_TYPE_PROPRIETARY");
+#endif
+#endif
 			memcpy1(LoRaMacRxPayload, &payload[pktHeaderLen], size);
 
 			McpsIndication.McpsIndication = MCPS_PROPRIETARY;
@@ -1095,6 +1153,14 @@ extern "C"
 			break;
 		}
 		default:
+#ifdef ESP32
+			log_d("OnRadioRxDone => UNKNOWN FRAME TYPE");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LM", "OnRadioRxDone => UNKNOWN FRAME TYPE");
+#endif
+#endif
 			McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 			PrepareRxDoneAbort();
 			break;
@@ -1108,6 +1174,14 @@ extern "C"
 
 	static void OnRadioTxTimeout(void)
 	{
+#ifdef ESP32
+		log_d("OnRadioTxTimeout");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+		LOG_LV1("LM", "OnRadioTxTimeout");
+#endif
+#endif
 		if (LoRaMacDeviceClass != CLASS_C)
 		{
 			Radio.Sleep();
@@ -1124,6 +1198,14 @@ extern "C"
 
 	static void OnRadioRxError(void)
 	{
+#ifdef ESP32
+		log_d("OnRadioRxError");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+		LOG_LV1("LM", "OnRadioRxError");
+#endif		
+#endif
 		if (LoRaMacDeviceClass != CLASS_C)
 		{
 			Radio.Sleep();
@@ -1159,6 +1241,14 @@ extern "C"
 
 	static void OnRadioRxTimeout(void)
 	{
+#ifdef ESP32
+		log_d("OnRadioRxTimeout");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+		LOG_LV1("LM", "OnRadioRxTimeout");
+#endif
+#endif
 		if (LoRaMacDeviceClass != CLASS_C)
 		{
 			Radio.Sleep();
@@ -1243,12 +1333,22 @@ extern "C"
 						}
 						else
 						{
+#ifdef ESP32
+							log_d("Join network failed %d time(s)\n", JoinRequestTrials);
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+							LOG_LV1("LM", "Join network failed %d time(s)\n", JoinRequestTrials);
+#endif
+#endif
+							IsLoRaMacNetworkJoined = JOIN_FAILED;
 							if (JoinRequestTrials >= MaxJoinRequestTrials)
 							{
 								LoRaMacState &= ~LORAMAC_TX_RUNNING;
 							}
 							else
 							{
+								IsLoRaMacNetworkJoined = JOIN_ONGOING;
 								LoRaMacFlags.Bits.MacDone = 0;
 								// Sends the same frame again
 								OnTxDelayedTimerEvent();
@@ -1371,7 +1471,14 @@ extern "C"
 			if (LoRaMacFlags.Bits.MlmeReq == 1)
 			{
 				LoRaMacPrimitives->MacMlmeConfirm(&MlmeConfirm);
-				LoRaMacFlags.Bits.MlmeReq = 0;
+				if (MlmeConfirm.MlmeRequest == MLME_JOIN && IsLoRaMacNetworkJoined != JOIN_OK)
+				{ // fix the bug: When the number of join times is used up, if call lmh_join() in callback function again cannot work
+					LoRaMacFlags.Bits.MlmeReq = 1;
+				}
+				else
+				{
+					LoRaMacFlags.Bits.MlmeReq = 0;
+				}
 			}
 
 			// Procedure done. Reset variables.
@@ -1916,7 +2023,8 @@ extern "C"
 		nextChan.AggrTimeOff = AggregatedTimeOff;
 		nextChan.Datarate = LoRaMacParams.ChannelsDatarate;
 		nextChan.DutyCycleEnabled = DutyCycleOn;
-		nextChan.Joined = IsLoRaMacNetworkJoined;
+//		nextChan.Joined = IsLoRaMacNetworkJoined;
+		nextChan.Joined = (IsLoRaMacNetworkJoined == JOIN_OK);
 		nextChan.LastAggrTx = AggregatedLastTxDoneTime;
 
 		// Select channel
@@ -1941,7 +2049,7 @@ extern "C"
 										LoRaMacParams.SystemMaxRxError,
 										&RxWindow2Config);
 
-		if (IsLoRaMacNetworkJoined == false)
+		if (IsLoRaMacNetworkJoined != JOIN_OK)
 		{
 			RxWindow1Delay = LoRaMacParams.JoinAcceptDelay1 + RxWindow1Config.WindowOffset;
 			RxWindow2Delay = LoRaMacParams.JoinAcceptDelay2 + RxWindow2Config.WindowOffset;
@@ -1977,7 +2085,8 @@ extern "C"
 	{
 		CalcBackOffParams_t calcBackOff;
 
-		calcBackOff.Joined = IsLoRaMacNetworkJoined;
+//		calcBackOff.Joined = IsLoRaMacNetworkJoined;
+		calcBackOff.Joined = (IsLoRaMacNetworkJoined == JOIN_OK);
 		calcBackOff.DutyCycleEnabled = DutyCycleOn;
 		calcBackOff.Channel = channel;
 		calcBackOff.ElapsedTime = TimerGetElapsedTime(LoRaMacInitializationTime);
@@ -1993,8 +2102,6 @@ extern "C"
 
 	static void ResetMacParameters(void)
 	{
-		IsLoRaMacNetworkJoined = false;
-
 		// Counters
 		UpLinkCounter = 0;
 		DownLinkCounter = 0;
@@ -2092,7 +2199,7 @@ extern "C"
 			NodeAckRequested = true;
 			//Intentional fallthrough
 		case FRAME_TYPE_DATA_UNCONFIRMED_UP:
-			if (IsLoRaMacNetworkJoined == false)
+			if (IsLoRaMacNetworkJoined != JOIN_OK)
 			{
 				return LORAMAC_STATUS_NO_NETWORK_JOINED; // No network has been joined yet
 			}
@@ -2243,7 +2350,7 @@ extern "C"
 		TimerSetValue(&MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT);
 		TimerStart(&MacStateCheckTimer);
 
-		if (IsLoRaMacNetworkJoined == false)
+		if (IsLoRaMacNetworkJoined != JOIN_OK)
 		{
 			JoinRequestTrials++;
 		}
@@ -2291,7 +2398,7 @@ extern "C"
 		return LORAMAC_STATUS_OK;
 	}
 
-	LoRaMacStatus_t LoRaMacInitialization(LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks, LoRaMacRegion_t region)
+	LoRaMacStatus_t LoRaMacInitialization(LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks, LoRaMacRegion_t region, eDeviceClass nodeClass)
 	{
 		GetPhyParams_t getPhy;
 		PhyParam_t phyParam;
@@ -2319,7 +2426,7 @@ extern "C"
 
 		LoRaMacFlags.Value = 0;
 
-		LoRaMacDeviceClass = CLASS_A;
+		LoRaMacDeviceClass = nodeClass;
 		LoRaMacState = LORAMAC_IDLE;
 
 		JoinRequestTrials = 0;
@@ -2434,6 +2541,20 @@ extern "C"
 
 		PublicNetwork = true;
 		Radio.SetPublicNetwork(PublicNetwork);
+
+		/// \todo Putting the RegionTxConfig here makes the OTAA join more stable
+		TxConfigParams_t txConfig;
+		int8_t txPower = 0;
+
+		txConfig.Channel = 0;
+		txConfig.Datarate = LoRaMacParams.ChannelsDatarate;
+		txConfig.TxPower = LoRaMacParams.ChannelsTxPower;
+		txConfig.MaxEirp = LoRaMacParams.MaxEirp;
+		txConfig.AntennaGain = LoRaMacParams.AntennaGain;
+		txConfig.PktLen = LoRaMacBufferPktLen;
+
+		RegionTxConfig(LoRaMacRegion, &txConfig, &txPower, &TxTimeOnAir);
+
 		Radio.Sleep();
 
 		return LORAMAC_STATUS_OK;
@@ -2497,6 +2618,14 @@ extern "C"
 		// Verify if the fOpts and the payload fit into the maximum payload
 		if (ValidatePayloadLength(size, datarate, fOptLen) == false)
 		{
+#ifdef ESP32
+			log_d("LoRaMacQueryTxPossible -> ValidatePayloadLength failed size = %d DR = %d", size, datarate);
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LM", "LoRaMacQueryTxPossible -> ValidatePayloadLength failed size = %d DR = %d", size, datarate);
+#endif
+#endif
 			return LORAMAC_STATUS_LENGTH_ERROR;
 		}
 		return LORAMAC_STATUS_OK;
@@ -2792,7 +2921,7 @@ extern "C"
 			{
 				LoRaMacParams.Rx2Channel = mibSet->Param.Rx2Channel;
 
-				if ((LoRaMacDeviceClass == CLASS_C) && (IsLoRaMacNetworkJoined == true))
+				if ((LoRaMacDeviceClass == CLASS_C) && (IsLoRaMacNetworkJoined == JOIN_OK))
 				{
 					// Compute Rx2 windows parameters
 					RegionComputeRxWindowParameters(LoRaMacRegion,
@@ -3145,13 +3274,13 @@ extern "C"
 			// Verify the parameter NbTrials for the join procedure
 			verify.NbJoinTrials = mlmeRequest->Req.Join.NbTrials;
 
-			if (RegionVerify(LoRaMacRegion, &verify, PHY_NB_JOIN_TRIALS) == false)
-			{
-				// Value not supported, get default
-				getPhy.Attribute = PHY_DEF_NB_JOIN_TRIALS;
-				phyParam = RegionGetPhyParam(LoRaMacRegion, &getPhy);
-				mlmeRequest->Req.Join.NbTrials = (uint8_t)phyParam.Value;
-			}
+			// if (RegionVerify(LoRaMacRegion, &verify, PHY_NB_JOIN_TRIALS) == false)
+			// {
+			// 	// Value not supported, get default
+			// 	getPhy.Attribute = PHY_DEF_NB_JOIN_TRIALS;
+			// 	phyParam = RegionGetPhyParam(LoRaMacRegion, &getPhy);
+			// 	mlmeRequest->Req.Join.NbTrials = (uint8_t)phyParam.Value;
+			// }
 
 			LoRaMacFlags.Bits.MlmeReq = 1;
 			MlmeConfirm.MlmeRequest = mlmeRequest->Type;
@@ -3173,6 +3302,8 @@ extern "C"
 			altDr.NbTrials = JoinRequestTrials + 1;
 
 			LoRaMacParams.ChannelsDatarate = RegionAlternateDr(LoRaMacRegion, &altDr);
+
+			IsLoRaMacNetworkJoined = JOIN_ONGOING;
 
 			status = Send(&macHdr, 0, NULL, 0);
 			break;
@@ -3233,6 +3364,14 @@ extern "C"
 		if (((LoRaMacState & LORAMAC_TX_RUNNING) == LORAMAC_TX_RUNNING) ||
 			((LoRaMacState & LORAMAC_TX_DELAYED) == LORAMAC_TX_DELAYED))
 		{
+#ifdef ESP32
+			log_d("LoRaMacMcpsRequest LORAMAC_STATUS_BUSY");
+#endif
+#ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
+			LOG_LV1("LM", "LoRaMacMcpsRequest LORAMAC_STATUS_BUSY");
+#endif
+#endif
 			return LORAMAC_STATUS_BUSY;
 		}
 

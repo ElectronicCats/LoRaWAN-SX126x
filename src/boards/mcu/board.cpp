@@ -71,9 +71,9 @@ extern "C"
 		SX126xReadRegisters(REG_LR_SYNCWORD, (uint8_t *)&readSyncWord, 2);
 		if ((readSyncWord == 0x2414) || (readSyncWord == 0x4434))
 		{
-			return 0;
+			return 1;
 		}
-		return 1;
+		return 0;
 	}
 
 	uint32_t lora_hardware_re_init(hw_config hwConfig)
@@ -103,72 +103,9 @@ extern "C"
 		SX126xReadRegisters(REG_LR_SYNCWORD, (uint8_t *)&readSyncWord, 2);
 		if ((readSyncWord == 0x2414) || (readSyncWord == 0x4434))
 		{
-			return 0;
+			return 1;
 		}
-		return 1;
-	}
-
-	uint32_t lora_isp4520_init(int chipType)
-	{
-		_hwConfig.CHIP_TYPE = chipType;		  // Chip type, SX1261 or SX1262
-		_hwConfig.PIN_LORA_RESET = 19;		  // LORA RESET
-		_hwConfig.PIN_LORA_NSS = 24;		  // LORA SPI CS
-		_hwConfig.PIN_LORA_SCLK = 23;		  // LORA SPI CLK
-		_hwConfig.PIN_LORA_MISO = 25;		  // LORA SPI MISO
-		_hwConfig.PIN_LORA_DIO_1 = 11;		  // LORA DIO_1
-		_hwConfig.PIN_LORA_BUSY = 27;		  // LORA SPI BUSY
-		_hwConfig.PIN_LORA_MOSI = 26;		  // LORA SPI MOSI
-		_hwConfig.RADIO_TXEN = -1;			  // LORA ANTENNA TX ENABLE (e.g. eByte E22 module)
-		_hwConfig.RADIO_RXEN = -1;			  // LORA ANTENNA RX ENABLE (e.g. eByte E22 module)
-		_hwConfig.USE_DIO2_ANT_SWITCH = true; // LORA DIO2 controls antenna
-		_hwConfig.USE_DIO3_TCXO = false;	  // LORA DIO3 does not controls oscillator voltage (e.g. eByte E22 module)
-		_hwConfig.USE_DIO3_ANT_SWITCH = true; // LORA DIO3 controls antenna (e.g. Insight SIP ISP4520 module)
-		_hwConfig.USE_RXEN_ANT_PWR = false;	  // RXEN is not used as power for antenna switch
-		TimerConfig();
-
-		SX126xIoInit();
-
-		// After power on the sync word should be 2414. 4434 could be possible on a restart
-		// If we got something else, something is wrong.
-		uint16_t readSyncWord = 0;
-		SX126xReadRegisters(REG_LR_SYNCWORD, (uint8_t *)&readSyncWord, 2);
-		if ((readSyncWord == 0x2414) || (readSyncWord == 0x4434))
-		{
-			return 0;
-		}
-		return 1;
-	}
-
-	uint32_t lora_rak4630_init(void)
-	{
-		_hwConfig.CHIP_TYPE = SX1262;		   // Chip type, SX1261 or SX1262
-		_hwConfig.PIN_LORA_RESET = 38;		   // LORA RESET
-		_hwConfig.PIN_LORA_NSS = 42;		   // LORA SPI CS
-		_hwConfig.PIN_LORA_SCLK = 43;		   // LORA SPI CLK
-		_hwConfig.PIN_LORA_MISO = 45;		   // LORA SPI MISO
-		_hwConfig.PIN_LORA_DIO_1 = 47;		   // LORA DIO_1
-		_hwConfig.PIN_LORA_BUSY = 46;		   // LORA SPI BUSY
-		_hwConfig.PIN_LORA_MOSI = 44;		   // LORA SPI MOSI
-		_hwConfig.RADIO_TXEN = 39;			   // LORA ANTENNA TX ENABLE (e.g. eByte E22 module)
-		_hwConfig.RADIO_RXEN = 37;			   // LORA ANTENNA RX ENABLE (e.g. eByte E22 module)
-		_hwConfig.USE_DIO2_ANT_SWITCH = true;  // LORA DIO2 controls antenna
-		_hwConfig.USE_DIO3_TCXO = true;		   // LORA DIO3 controls oscillator voltage (e.g. eByte E22 module)
-		_hwConfig.USE_DIO3_ANT_SWITCH = false; // LORA DIO3 controls antenna (e.g. Insight SIP ISP4520 module)
-		_hwConfig.USE_RXEN_ANT_PWR = true;	   // RXEN is used as power for antenna switch
-
-		TimerConfig();
-
-		SX126xIoInit();
-
-		// After power on the sync word should be 2414. 4434 could be possible on a restart
-		// If we got something else, something is wrong.
-		uint16_t readSyncWord = 0;
-		SX126xReadRegisters(REG_LR_SYNCWORD, (uint8_t *)&readSyncWord, 2);
-		if ((readSyncWord == 0x2414) || (readSyncWord == 0x4434))
-		{
-			return 0;
-		}
-		return 1;
+		return 0;
 	}
 
 	void lora_hardware_uninit(void)

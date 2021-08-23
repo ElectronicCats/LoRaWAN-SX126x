@@ -34,6 +34,7 @@ Maintainer: Miguel Luis, Gregory Cristian and Wael Guibene
  *
  *****************************************************************************/
 #ifdef NRF52_SERIES
+#if !defined(ARDUINO_ARCH_MBED)
 #include "boards/mcu/timer.h"
 #include "boards/mcu/board.h"
 #include "app_util.h"
@@ -124,4 +125,5 @@ extern "C"
 		return diff;
 	}
 };
+#endif
 #endif

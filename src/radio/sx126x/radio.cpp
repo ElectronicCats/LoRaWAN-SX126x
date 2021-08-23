@@ -654,7 +654,6 @@ extern "C"
 
 	uint32_t RadioRandom(void)
 	{
-		uint8_t i;
 		uint32_t rnd = 0;
 
 		/*

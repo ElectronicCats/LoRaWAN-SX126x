@@ -107,7 +107,8 @@ extern "C"
 	/*!
  * LoRaMAC channels parameters definition
  */
-	typedef union uDrRange {
+	typedef union uDrRange
+	{
 		/*!
      * Byte-access to the bits
      */
@@ -465,7 +466,8 @@ extern "C"
  *
  * LoRaWAN Specification V1.0.2, chapter 4.2
  */
-	typedef union uLoRaMacHeader {
+	typedef union uLoRaMacHeader
+	{
 		/*!
      * Byte-access to the bits
      */
@@ -495,7 +497,8 @@ extern "C"
  *
  * LoRaWAN Specification V1.0.2, chapter 4.3.1
  */
-	typedef union uLoRaMacFrameCtrl {
+	typedef union uLoRaMacFrameCtrl
+	{
 		/*!
      * Byte-access to the bits
      */
@@ -593,7 +596,8 @@ extern "C"
 	/*!
  * LoRaMac tx/rx operation state
  */
-	typedef union eLoRaMacFlags_t {
+	typedef union eLoRaMacFlags_t
+	{
 		/*!
      * Byte-access to the bits
      */
@@ -774,7 +778,8 @@ extern "C"
 		/*!
      * MCPS-Request parameters
      */
-		union uMcpsParam {
+		union uMcpsParam
+		{
 			/*!
          * MCPS-Request parameters for an unconfirmed frame
          */
@@ -1007,7 +1012,8 @@ extern "C"
 		/*!
      * MLME-Request parameters
      */
-		union uMlmeParam {
+		union uMlmeParam
+		{
 			/*!
          * MLME-Request parameters for a join request
          */
@@ -1297,9 +1303,21 @@ extern "C"
 	} Mib_t;
 
 	/*!
+ * Network Joined status
+ */
+	typedef enum eJoinStatus
+	{
+		JOIN_NOT_START,
+		JOIN_OK,
+		JOIN_ONGOING,
+		JOIN_FAILED
+	} eJoinStatus_t;
+
+	/*!
  * LoRaMAC MIB parameters
  */
-	typedef union uMibParam {
+	typedef union uMibParam
+	{
 		/*!
      * LoRaWAN device class
      *
@@ -1311,7 +1329,7 @@ extern "C"
      *
      * Related MIB type: \ref MIB_NETWORK_JOINED
      */
-		bool IsNetworkJoined;
+		eJoinStatus_t IsNetworkJoined;
 		/*!
      * Activation state of ADR
      *
@@ -1674,6 +1692,8 @@ extern "C"
  *                        callback functions. Refer to \ref LoRaMacCallback_t.
  *
  * \param    region - The region to start.
+ * 
+ * \param    nodeClass - Choose node class CLASS_A, CLASS_B or CLASS_C, default to CLASS_A
  *
  * \retval  LoRaMacStatus_t Status of the operation. Possible returns are:
  *          returns are:
@@ -1681,7 +1701,7 @@ extern "C"
  *          \ref LORAMAC_STATUS_PARAMETER_INVALID,
  *          \ref LORAMAC_STATUS_REGION_NOT_SUPPORTED.
  */
-	LoRaMacStatus_t LoRaMacInitialization(LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks, LoRaMacRegion_t region);
+	LoRaMacStatus_t LoRaMacInitialization(LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks, LoRaMacRegion_t region, eDeviceClass nodeClass = CLASS_A);
 
 	/*!
  * \brief   Returns the Device Address set by the LoRaWan server

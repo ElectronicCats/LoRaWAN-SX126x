@@ -92,16 +92,6 @@ extern "C"
  */
 	uint32_t lora_hardware_re_init(hw_config hwConfig);
 
-	/**@brief Initializes the ISP4520 board peripherals.
- *
- * @param [chipType] chipType selects either SX1262/1268 or SX1261
- */
-	uint32_t lora_isp4520_init(int chipType);
-
-	/**@brief Initializes the RAK4630 board peripherals.
- */
-	uint32_t lora_rak4630_init(void);
-
 	/**@brief De-initializes the target board peripherals to decrease power
  *        consumption.
  */
