@@ -143,11 +143,14 @@ void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr)
 	BufferSize = size;
 	memcpy(RcvBuffer, payload, BufferSize);
 
-	Serial.printf("RssiValue=%d dBm, SnrValue=%d\n", rssi, snr);
+	Serial.print("RssiValue=");
+    Serial.print(rssi);
+    Serial.print("SnrValue=");
+    Serial.println(snr);
 
 	for (int idx = 0; idx < size; idx++)
 	{
-		Serial.printf("%02X ", RcvBuffer[idx]);
+		Serial.println(RcvBuffer[idx]);
 	}
 	Serial.println("");
 	digitalWrite(LED_BUILTIN, HIGH);
@@ -284,12 +287,14 @@ void OnCadDone(bool cadResult)
 	time_t duration = millis() - cadTime;
 	if (cadResult)
 	{
-		Serial.printf("CAD returned channel busy after %ldms\n", duration);
+		Serial.print("CAD returned channel busy after ");
+    Serial.println(duration);
 		Radio.Rx(RX_TIMEOUT_VALUE);
 	}
 	else
 	{
-		Serial.printf("CAD returned channel free after %ldms\n", duration);
+		Serial.print("CAD returned channel free after ");
+		Serial.println(duration);
 		if (isMaster)
 		{
 			Serial.println("Sending a PING in OnCadDone as Master");
