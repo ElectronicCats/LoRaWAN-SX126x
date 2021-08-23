@@ -610,7 +610,9 @@ extern "C"
 		log_d("OnRadioTxDone");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 		LOG_LV1("LM", "OnRadioTxDone");
+#endif
 #endif
 		GetPhyParams_t getPhy;
 		PhyParam_t phyParam;
@@ -629,7 +631,9 @@ extern "C"
 			log_d("OnRadioTxDone => RX Windows #1 %d #2 %d", RxWindow1Delay, RxWindow2Delay);
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LM", "OnRadioTxDone => RX Windows #1 %d #2 %d", RxWindow1Delay, RxWindow2Delay);
+#endif
 #endif
 			TimerSetValue(&RxWindowTimer1, RxWindow1Delay);
 			TimerStart(&RxWindowTimer1);
@@ -662,7 +666,9 @@ extern "C"
 			log_d("OnRadioTxDone => TX was Join Request");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LM", "OnRadioTxDone => TX was Join Request");
+#endif
 #endif
 			LastTxIsJoinRequest = true;
 		}
@@ -712,7 +718,9 @@ extern "C"
 		log_d("OnRadioRxDone");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 		LOG_LV1("LM", "OnRadioRxDone");
+#endif
 #endif
 		LoRaMacHeader_t macHdr;
 		LoRaMacFrameCtrl_t fCtrl;
@@ -768,7 +776,9 @@ extern "C"
 			log_d("OnRadioRxDone => FRAME_TYPE_JOIN_ACCEPT");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LM", "OnRadioRxDone => FRAME_TYPE_JOIN_ACCEPT");
+#endif
 #endif
 			if (IsLoRaMacNetworkJoined == JOIN_OK)
 			{
@@ -837,7 +847,9 @@ extern "C"
 			log_d("OnRadioRxDone => FRAME_TYPE_DATA_(UN)CONFIRMED_DOWN");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LM", "OnRadioRxDone => FRAME_TYPE_DATA_(UN)CONFIRMED_DOWN");
+#endif
 #endif
 			// Check if the received payload size is valid
 			getPhy.UplinkDwellTime = LoRaMacParams.DownlinkDwellTime;
@@ -1126,7 +1138,9 @@ extern "C"
 			log_d("OnRadioRxDone => FRAME_TYPE_PROPRIETARY");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LM", "OnRadioRxDone => FRAME_TYPE_PROPRIETARY");
+#endif
 #endif
 			memcpy1(LoRaMacRxPayload, &payload[pktHeaderLen], size);
 
@@ -1143,7 +1157,9 @@ extern "C"
 			log_d("OnRadioRxDone => UNKNOWN FRAME TYPE");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LM", "OnRadioRxDone => UNKNOWN FRAME TYPE");
+#endif
 #endif
 			McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 			PrepareRxDoneAbort();
@@ -1162,7 +1178,9 @@ extern "C"
 		log_d("OnRadioTxTimeout");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 		LOG_LV1("LM", "OnRadioTxTimeout");
+#endif
 #endif
 		if (LoRaMacDeviceClass != CLASS_C)
 		{
@@ -1184,7 +1202,9 @@ extern "C"
 		log_d("OnRadioRxError");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 		LOG_LV1("LM", "OnRadioRxError");
+#endif		
 #endif
 		if (LoRaMacDeviceClass != CLASS_C)
 		{
@@ -1225,7 +1245,9 @@ extern "C"
 		log_d("OnRadioRxTimeout");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 		LOG_LV1("LM", "OnRadioRxTimeout");
+#endif
 #endif
 		if (LoRaMacDeviceClass != CLASS_C)
 		{
@@ -1315,7 +1337,9 @@ extern "C"
 							log_d("Join network failed %d time(s)\n", JoinRequestTrials);
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 							LOG_LV1("LM", "Join network failed %d time(s)\n", JoinRequestTrials);
+#endif
 #endif
 							IsLoRaMacNetworkJoined = JOIN_FAILED;
 							if (JoinRequestTrials >= MaxJoinRequestTrials)
@@ -2598,7 +2622,9 @@ extern "C"
 			log_d("LoRaMacQueryTxPossible -> ValidatePayloadLength failed size = %d DR = %d", size, datarate);
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LM", "LoRaMacQueryTxPossible -> ValidatePayloadLength failed size = %d DR = %d", size, datarate);
+#endif
 #endif
 			return LORAMAC_STATUS_LENGTH_ERROR;
 		}
@@ -3342,7 +3368,9 @@ extern "C"
 			log_d("LoRaMacMcpsRequest LORAMAC_STATUS_BUSY");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LM", "LoRaMacMcpsRequest LORAMAC_STATUS_BUSY");
+#endif
 #endif
 			return LORAMAC_STATUS_BUSY;
 		}

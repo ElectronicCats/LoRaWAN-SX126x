@@ -191,7 +191,9 @@ extern "C"
 		log_i("[FREQ] REGION_US915_HYBRID");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 		ADALOG("FREQ", "REGION_US915_HYBRID");
+#endif
 #endif
 #else
 #error "Please define a region in the compiler options."
@@ -206,7 +208,9 @@ extern "C"
 			log_e("[LMH] Invalid subband");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LMH", "Invalid subband");
+#endif
 #endif
 			// Invalid sub band requested
 			return false;
@@ -288,7 +292,9 @@ extern "C"
 			log_e("[LMH] Invalid subband");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LMH", "Invalid subband");
+#endif
 #endif
 			return false;
 		}
@@ -309,7 +315,9 @@ extern "C"
 		log_e("[LMH] Selected subband %d", subBand);
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 		LOG_LV1("LMH", "Selected subband %d", subBand);
+#endif
 #endif
 		return true;
 	}
@@ -734,7 +742,9 @@ extern "C"
 			log_i("OTAA\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("OTAA", "\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
+#endif
 #endif
 		}
 		else
@@ -756,7 +766,9 @@ extern "C"
 			log_i("ABP\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("ABP", "\n%s\nDevAdd=%08X\n%s\n%s", strlog1, DevAddr, strlog2, strlog3);
+#endif
 #endif
 		}
 
@@ -961,7 +973,9 @@ extern "C"
 			log_d("lmh_send -> LoRaMacQueryTxPossible failed");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LMH", "lmh_send -> LoRaMacQueryTxPossible failed");
+#endif
 #endif
 			// Send empty frame in order to flush MAC commands
 			mcpsReq.Type = MCPS_UNCONFIRMED;
@@ -1003,7 +1017,9 @@ extern "C"
 			log_d("lmh_send -> LoRaMacMcpsRequest failed");
 #endif
 #ifdef NRF52_SERIES
+#ifndef ARDUINO_ARCH_MBED
 			LOG_LV1("LMH", "lmh_send -> LoRaMacMcpsRequest failed");
+#endif
 #endif
 		}
 
