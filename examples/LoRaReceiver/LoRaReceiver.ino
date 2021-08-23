@@ -109,10 +109,14 @@ void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr)
   delay(10);
   memcpy(RcvBuffer, payload, size);
 
-  Serial.print("RssiValue=");
-  Serial.print(rssi);
-  Serial.print("SnrValue=");
-  Serial.println(snr);
+  #ifndef ARDUINO_ARCH_MBED
+    Serial.printf("RssiValue=%d dBm, SnrValue=%d\n", rssi, snr);
+  #else
+    Serial.print("RssiValue=");
+    Serial.print(rssi);
+    Serial.print("SnrValue=");
+    Serial.println(snr);
+  #endif
 
   for (int idx = 0; idx < size; idx++)
   {

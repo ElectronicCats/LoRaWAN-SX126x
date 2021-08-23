@@ -287,14 +287,22 @@ void OnCadDone(bool cadResult)
 	time_t duration = millis() - cadTime;
 	if (cadResult)
 	{
-		Serial.print("CAD returned channel busy after ");
-    Serial.println(duration);
+		#ifndef ARDUINO_ARCH_MBED
+          Serial.printf("CAD returned channel busy after %ldms\n", duration);
+		#else
+		  Serial.print("CAD returned channel busy after ");
+          Serial.println(duration);
+		#endif
 		Radio.Rx(RX_TIMEOUT_VALUE);
 	}
 	else
 	{
-		Serial.print("CAD returned channel free after ");
-		Serial.println(duration);
+		#ifndef ARDUINO_ARCH_MBED
+		  Serial.printf("CAD returned channel free after %ldms\n", duration);
+		#else
+		  Serial.print("CAD returned channel free after ");
+		  Serial.println(duration);
+		#endif
 		if (isMaster)
 		{
 			Serial.println("Sending a PING in OnCadDone as Master");
