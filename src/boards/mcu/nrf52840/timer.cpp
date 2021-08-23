@@ -42,97 +42,95 @@ Modified for NRF52840 Andrés Sabas @ Electronic Cats
 using namespace std::chrono_literals;
 using namespace std::chrono;
 
-extern "C"
-{  
-	mbed::Ticker  timerTickers[10]; // calls a callback repeatedly with a timeout
-	mbed::Timeout timeoutTickers[10];  // calls a callback once when a timeout expires
-	uint32_t timerTimes[10];
-	bool timerInUse[10] = {false, false, false, false, false, false, false, false, false, false};
+static mbed::Ticker timerTickers[10];	 // calls a callback repeatedly with a timeout
+static mbed::Timeout timeoutTickers[10]; // calls a callback once when a timeout expires
+uint32_t timerTimes[10];
+bool timerInUse[10] = {false, false, false, false, false, false, false, false, false, false};
 
-	// External functions
+// External functions
 
-	void TimerConfig(void)
+void TimerConfig(void)
+{
+	/// \todo Nothing to do here for nRF52
+}
+
+void TimerInit(TimerEvent_t *obj, void (*callback)(void))
+{
+	// Look for an available Ticker
+	for (int idx = 0; idx < 10; idx++)
 	{
-		/// \todo Nothing to do here for nRF52
-	}
-
-	void TimerInit(TimerEvent_t *obj, void (*callback)(void))
-	{
-		// Look for an available Ticker
-		for (int idx = 0; idx < 10; idx++)
+		if (timerInUse[idx] == false)
 		{
-			if (timerInUse[idx] == false)
-			{
-				timerInUse[idx] = true;
-				obj->timerNum = idx;
-				obj->Callback = callback;
-				return;
-			}
-		}
-		/// \todo We run out of tickers, what do we do now???
-	}
-
-	void timerCallback(TimerEvent_t *obj)
-	{
-		// Nothing to do here for the nRF52
-	}
-
-	void TimerStart(TimerEvent_t *obj)
-	{
-
-        int idx = obj->timerNum;
-		if (obj->oneShot)
-		{
-			timeoutTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::microseconds(timerTimes[idx]));
-		}
-		else
-		{
-			timerTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::microseconds(timerTimes[idx]));
+			timerInUse[idx] = true;
+			obj->timerNum = idx;
+			obj->Callback = callback;
+			return;
 		}
 	}
+	/// \todo We run out of tickers, what do we do now???
+}
 
-	void TimerStop(TimerEvent_t *obj)
+void timerCallback(TimerEvent_t *obj)
+{
+	// Nothing to do here for the nRF52
+}
+
+void TimerStart(TimerEvent_t *obj)
+{
+
+	int idx = obj->timerNum;
+	if (obj->oneShot)
 	{
-		int idx = obj->timerNum;
-		timerTickers[idx].detach();
-		timeoutTickers[idx].detach();
+		timeoutTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::milliseconds(timerTimes[idx]));
 	}
-
-	void TimerReset(TimerEvent_t *obj)
+	else
 	{
-		int idx = obj->timerNum;
-		timerTickers[idx].detach();
-		timeoutTickers[idx].detach();
-		if (obj->oneShot)
-		{
-			//timeoutTickers[idx].attach((mbed::callback(obj->Callback)), timerTimes[idx] * 1ms);
-			timeoutTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::microseconds(timerTimes[idx]));
-		}
-		else
-		{
-			//timerTickers[idx].attach((mbed::callback(obj->Callback)), timerTimes[idx] * 1ms);
-			timerTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::microseconds(timerTimes[idx]));
-		}
+		timerTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::milliseconds(timerTimes[idx]));
 	}
+}
 
-	void TimerSetValue(TimerEvent_t *obj, uint32_t value)
+void TimerStop(TimerEvent_t *obj)
+{
+	int idx = obj->timerNum;
+	timerTickers[idx].detach();
+	timeoutTickers[idx].detach();
+}
+
+void TimerReset(TimerEvent_t *obj)
+{
+	int idx = obj->timerNum;
+	timerTickers[idx].detach();
+	timeoutTickers[idx].detach();
+	if (obj->oneShot)
 	{
-		int idx = obj->timerNum;
-		timerTimes[idx] = value;
+		//timeoutTickers[idx].attach((mbed::callback(obj->Callback)), timerTimes[idx] * 1ms);
+		timeoutTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::milliseconds(timerTimes[idx]));
 	}
-
-	TimerTime_t TimerGetCurrentTime(void)
+	else
 	{
-		return millis();
+		//timerTickers[idx].attach((mbed::callback(obj->Callback)), timerTimes[idx] * 1ms);
+		timerTickers[idx].attach((mbed::callback(obj->Callback)), std::chrono::milliseconds(timerTimes[idx]));
 	}
+}
 
-	TimerTime_t TimerGetElapsedTime(TimerTime_t past)
-	{
-		uint32_t nowInTicks = millis();
-		uint32_t pastInTicks = past;
-		TimerTime_t diff = nowInTicks - pastInTicks;
+void TimerSetValue(TimerEvent_t *obj, uint32_t value)
+{
+	int idx = obj->timerNum;
+	timerTimes[idx] = value;
+}
 
-		return diff;
-	}
-};
+TimerTime_t TimerGetCurrentTime(void)
+{
+	return millis();
+}
+
+TimerTime_t TimerGetElapsedTime(TimerTime_t past)
+{
+	uint32_t nowInTicks = millis();
+	uint32_t pastInTicks = past;
+	TimerTime_t diff = nowInTicks - pastInTicks;
+
+	return diff;
+}
+
 #endif

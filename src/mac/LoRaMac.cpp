@@ -619,27 +619,15 @@ extern "C"
 		// Setup timers
 		if (IsRxWindowsEnabled == true)
 		{
-			#if defined(ARDUINO_ARCH_MBED)
-			TimerSetValue(&RxWindowTimer1, RxWindow1Delay*1000);
-			#else
 			TimerSetValue(&RxWindowTimer1, RxWindow1Delay);
-			#endif
 			TimerStart(&RxWindowTimer1);
-			#if defined(ARDUINO_ARCH_MBED)
-			TimerSetValue(&RxWindowTimer2, RxWindow2Delay*1000);
-			#else
 			TimerSetValue(&RxWindowTimer2, RxWindow2Delay);
-			#endif
 			TimerStart(&RxWindowTimer2);
 			if ((LoRaMacDeviceClass == CLASS_C) || (NodeAckRequested == true))
 			{
 				getPhy.Attribute = PHY_ACK_TIMEOUT;
 				phyParam = RegionGetPhyParam(LoRaMacRegion, &getPhy);
-				#if defined(ARDUINO_ARCH_MBED)
-				TimerSetValue(&AckTimeoutTimer, (RxWindow2Delay + phyParam.Value)*1000);
-				#else
 				TimerSetValue(&AckTimeoutTimer, (RxWindow2Delay + phyParam.Value));
-				#endif
 				TimerStart(&AckTimeoutTimer);
 			}
 		}
@@ -695,11 +683,7 @@ extern "C"
 		LoRaMacFlags.Bits.MacDone = 1;
 
 		// Trig OnMacCheckTimerEvent call as soon as possible
-		#if defined(ARDUINO_ARCH_MBED)
-		TimerSetValue(&MacStateCheckTimer, 1000);
-		#else
 		TimerSetValue(&MacStateCheckTimer, 1);
-		#endif
 		TimerStart(&MacStateCheckTimer);
 	}
 
@@ -1118,11 +1102,7 @@ extern "C"
 		LoRaMacFlags.Bits.MacDone = 1;
 
 		// Trig OnMacCheckTimerEvent call as soon as possible
-		#if defined(ARDUINO_ARCH_MBED)
-		TimerSetValue(&MacStateCheckTimer, 1000);
-		#else
 		TimerSetValue(&MacStateCheckTimer, 1);
-		#endif
 		TimerStart(&MacStateCheckTimer);
 	}
 
@@ -1986,11 +1966,7 @@ extern "C"
 		{
 			// Send later - prepare timer
 			LoRaMacState |= LORAMAC_TX_DELAYED;
-			#if defined(ARDUINO_ARCH_MBED)
-			TimerSetValue(&TxDelayedTimer, dutyCycleTimeOff*1000);
-			#else
 			TimerSetValue(&TxDelayedTimer, dutyCycleTimeOff);
-			#endif
 			TimerStart(&TxDelayedTimer);
 
 			return LORAMAC_STATUS_OK;
