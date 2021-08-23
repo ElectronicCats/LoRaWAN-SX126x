@@ -760,7 +760,7 @@ extern "C"
 		// Eight times a 125kHz DR_0 and then one 500kHz DR_4 channel
 		if( alternateDr->NbTrials % 9 == 0 )
 		{
-			//Use DR_4 every 9th times.
+			// Use DR_4 every 9th times.
 			datarate = DR_4;
 		}
 		else
